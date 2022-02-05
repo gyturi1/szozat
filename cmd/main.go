@@ -29,14 +29,15 @@ func parseArgs() (lib.Word, lib.Word, []lib.Letter) {
 }
 
 func parseFlags(guess, availableLetters string) (lib.Word, lib.Word, []lib.Letter) {
-	initialWord, fixedWordPattern, err := lib.ParseWords(strings.Split(guess, " "))
+	initialWord, fixedWordPattern, err := lib.ParseGuess(strings.Split(guess, " "))
 	if err != nil {
-		panic(err)
+		panic(fmt.Errorf("flag -g: %w", err))
+
 	}
 
 	letters, err := lib.ParseRemainingLetters(strings.Split(availableLetters, " "))
 	if err != nil {
-		panic(err)
+		panic(fmt.Errorf("flag -l: %w", err))
 	}
 	return initialWord, fixedWordPattern, letters
 }

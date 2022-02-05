@@ -42,10 +42,11 @@ func Test_hasEmptySlot(t *testing.T) {
 		w    Word
 		want bool
 	}{
-		{"T1", [5]Letter{"_", "", "", "", ""}, true},
-		{"T2", [5]Letter{"_", "a", "a", "cs", "a"}, true},
-		{"T3", [5]Letter{"", "", "", "", ""}, false},
-		{"T4", [5]Letter{"a", "a", "a", "a", "a"}, false},
+		{"T1", Word{}, false},
+		{"T2", [5]Letter{"_", "", "", "", ""}, true},
+		{"T3", [5]Letter{"_", "a", "a", "cs", "a"}, true},
+		{"T4", [5]Letter{"", "", "", "", ""}, false},
+		{"T5", [5]Letter{"a", "a", "a", "a", "a"}, false},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

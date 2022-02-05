@@ -70,6 +70,12 @@ func Test_split(t *testing.T) {
 		wantUnfinshed []Word
 	}{
 		{
+			name:          "T0",
+			ws:            []Word{{}},
+			wantFinshed:   []Word{{}},
+			wantUnfinshed: []Word{},
+		},
+		{
 			name:          "T1",
 			ws:            []Word{{"a", "a", "a", "a", "a"}},
 			wantFinshed:   []Word{{"a", "a", "a", "a", "a"}},
@@ -82,13 +88,13 @@ func Test_split(t *testing.T) {
 			wantUnfinshed: []Word{{"_", "a", "a", "a", "a"}},
 		},
 		{
-			name:          "T2",
+			name:          "T3",
 			ws:            []Word{{"a", "a", "a", "a", "a"}, {"_", "_", "a", "a", "a"}, {"_", "_", "_", "a", "a"}},
 			wantFinshed:   []Word{{"a", "a", "a", "a", "a"}},
 			wantUnfinshed: []Word{{"_", "_", "a", "a", "a"}, {"_", "_", "_", "a", "a"}},
 		},
 		{
-			name:          "T2",
+			name:          "T4",
 			ws:            []Word{{"a", "a", "a", "a", "a"}, {"_", "_", "a", "a", "a"}, {"_", "_", "_", "a", "a"}, {"a", "a", "a", "a", "b"}},
 			wantFinshed:   []Word{{"a", "a", "a", "a", "a"}, {"a", "a", "a", "a", "b"}},
 			wantUnfinshed: []Word{{"_", "_", "a", "a", "a"}, {"_", "_", "_", "a", "a"}},

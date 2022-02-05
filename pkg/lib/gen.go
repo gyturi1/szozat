@@ -21,7 +21,7 @@ func filterByPattern(ws []Word, pattern Word) []Word {
 }
 
 func generateAll(initialWord []Word, availableLetters []Letter) []Word {
-	if len(initialWord) == 0 {
+	if len(initialWord) == 0 || len(availableLetters) == 0 {
 		return initialWord
 	}
 	var ret []Word
