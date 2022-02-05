@@ -7,18 +7,18 @@ This is a CLI to help finding the next guess if some of the letters are already 
 ----------
 ## Word list
 
-There is a [word list](../szozat/pkg/wordmap/words.txt) included in this program. It is generated with this [utility](https://github.com/gyturi1/cleanwords).
+There is a [word list](../szozat/pkg/wordmap/words.txt) included in this program. It is generated with this [utility](https://github.com/gyturi1/cleanwords). It contains hungarian 5 letter words but contains false positives, so not perfect. See the utility link.
 
 ----------
 ## Usage
 
-Download the binary from [here](release)
+Download the binary from [release](https://github.com/gyturi1/szozat/releases)
 
-szozat -g "g u e s s" -l "a ny ly t dzs ű"
-- -g flag: the last guess format below
+`szozat -g "g u e s s" -l "a ny ly t dzs ű"`
+- -g flag: the last guess see format below
 - -l flag: the remainig letters space separated
 
-Guess there must be space separated list of these (5 elements):
+Guess format there must be a space separated list of these (5 elements):
 - "_" denotes an unknow letter on that position
 - "L" denotes a know letter (L) not in the rigth position (orange)
 - "*L" denotes a know letter (L) in the rigth position (green)
