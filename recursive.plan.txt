@@ -1,0 +1,36 @@
+/*
+data Letter = EMPTY | A | Á | B | C | CS ...
+data Word = Word Letter Letter Letter Letter Letter
+
+[Word] -> [Letter] -> [Word]
+recc [] _  = []
+recc ws []  = ws
+recc ws ls = finished ++ recc next ls n-1
+	where
+		finished, hasEmptySlot = split ws
+		next = join $ map (putAllLettersToFirstEmptySlot ls) hasEmptySlot
+
+[Word] -> ([Word], [Word])
+split [] = ([], [])
+split w  = (filter hasEmpty ws, filter !hasEmpty ws)
+
+[Letters] -> Word -> [Word]
+putAllLettersToFirstEmptySlot [] w = [w]
+putAllLettersToFirstEmptySlot ls w = map (putLetterToFirstEmptySlot w) ls
+
+Word -> Letter -> Word
+putLetterToFirstEmptySlot Word EMPTY b c d e l = Word l b c d e
+putLetterToFirstEmptySlot Word a EMPTY c d e l = True a l c d e
+putLetterToFirstEmptySlot Word a b EMPTY d e l = True a b l d e
+putLetterToFirstEmptySlot Word a b c EMPTY e l = True a b c l e
+putLetterToFirstEmptySlot Word a b c d EMPTY l = True a b c l e
+putLetterToFirstEmptySlot w l = w
+
+Word -> Bool
+hasEmpty Word EMPTY _ _ _ _ = True
+hasEmpty Word _ EMPTY _ _ _ = True
+hasEmpty Word _ _ EMPTY _ _ = True
+hasEmpty Word _ _ _ EMPTY _ = True
+hasEmpty Word _ _ _ _ EMPTY = True
+hasEmpty _ = false
+*/
