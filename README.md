@@ -12,7 +12,7 @@ There is a [word list](../szozat/pkg/wordmap/words.txt) included in this program
 ----------
 ## Usage
 
-Download the binary from [release](https://github.com/gyturi1/szozat/releases)
+Download the tar.gz for your patfrom from [release](https://github.com/gyturi1/szozat/releases). Extract it and copy szozat/szozat.exe. Run chmod +x as if needed.
 
 `szozat -g "g u e s s" -l "a ny ly t dzs ű"`
 - -g flag: the last guess see format below
