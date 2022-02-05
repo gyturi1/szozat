@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"os"
 	"sort"
 	"strings"
 
@@ -10,7 +11,7 @@ import (
 	"github.com/gyturi1/szozat/pkg/wordmap"
 )
 
-//go run cmd/main.go -g "_ _ cs ö k"  -l "h f ü ny ly t"
+//go run cmd/main.go -g "_ _ cs *ö k"  -l "h f ü ny ly t"
 func main() {
 	initialWord, fixedWordPattern, letters := parseArgs()
 	ws := lib.Gen(initialWord, fixedWordPattern, letters)
@@ -21,8 +22,13 @@ func main() {
 func parseArgs() (lib.Word, lib.Word, []lib.Letter) {
 	guess := flag.String("g", "_ _ _ _ _", "the last guess ex: _ ö *cs _ k; _ denotes missing letter, * means letter in the rigth position, other are included but not the rigth position")
 	availableLetters := flag.String("l", "", "space separated list of letters available")
+	ver := flag.Bool("v", false, "prnts the version info")
 
 	flag.Parse()
+	if *ver {
+		printVersion()
+		os.Exit(0)
+	}
 
 	return parseFlags(*guess, *availableLetters)
 
@@ -54,4 +60,10 @@ func printResult(ws []lib.Word) {
 	}
 
 	fmt.Println(len(ws))
+}
+
+var commit, version, date string
+
+func printVersion() {
+	fmt.Printf("Current build version: %s, commit:%s, date: %s \n", version, commit, date)
 }
