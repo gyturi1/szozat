@@ -80,9 +80,9 @@ func Test_letterSet_addAll(t *testing.T) {
 		},
 		{
 			name: "full alphabet",
-			ls:   hun_alphabet.asSet(),
-			args: args{s: hun_alphabet.asSet()},
-			want: hun_alphabet.asSet(),
+			ls:   hunAlphabet.asSet(),
+			args: args{s: hunAlphabet.asSet()},
+			want: hunAlphabet.asSet(),
 		},
 	}
 	for _, tt := range tests {
@@ -124,8 +124,8 @@ func Test_letterSet_removeAll(t *testing.T) {
 		},
 		{
 			name: "full alphabet",
-			ls1:  hun_alphabet.asSet(),
-			args: args{ls2: hun_alphabet.asSet()},
+			ls1:  hunAlphabet.asSet(),
+			args: args{ls2: hunAlphabet.asSet()},
 			want: mkLetterSet(),
 		},
 	}
