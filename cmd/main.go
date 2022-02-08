@@ -7,13 +7,23 @@ import (
 	"net/http"
 	"os"
 	"sort"
+	"strings"
 
 	"github.com/gyturi1/szozat/pkg/generator"
 	"github.com/gyturi1/szozat/pkg/wordmap"
 )
 
+type params struct {
+	all    bool
+	update bool
+}
+
 func main() {
-	all, guessStrings := parseArgs()
+	params, guessStrings := parseArgs()
+	if len(guessStrings) == 0 || !hasGreenLetter(guessStrings) {
+		fmt.Println("No guess provided, or guess is too loose")
+		os.Exit(0)
+	}
 	gs := parseGuesses(guessStrings...)
 	i := generator.Input{
 		Guesses:   gs,
@@ -23,7 +33,16 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	printResult(ws, all)
+	printResult(ws, params.all)
+}
+
+func hasGreenLetter(gs []string) bool {
+	for _, g := range gs {
+		if strings.Contains(g, string(generator.Green)) {
+			return true
+		}
+	}
+	return false
 }
 
 func parseGuesses(ss ...string) []generator.Guess {
@@ -38,10 +57,11 @@ func parseGuesses(ss ...string) []generator.Guess {
 	return ret
 }
 
-func parseArgs() (bool, []string) {
+func parseArgs() (params, []string) {
 	v := flag.Bool("v", false, "prints the version info")
 	e := flag.Bool("e", false, "examples")
 	a := flag.Bool("a", false, "print all results")
+	u := flag.Bool("u", false, "update word list")
 
 	flag.Parse()
 	if *v {
@@ -53,7 +73,7 @@ func parseArgs() (bool, []string) {
 		os.Exit(0)
 	}
 
-	return *a, flag.Args()
+	return params{all: *a, update: *u}, flag.Args()
 }
 
 const maxresult = 20
@@ -96,9 +116,9 @@ func printExamples() {
 	fmt.Printf("I a guess prefix each letter with one of the markers, meaning of the markers:\n")
 	fmt.Printf("\t %v\n", markersInfo)
 	fmt.Println("")
-	fmt.Printf("Suppose you made the guess 'kocsis', and k is green cs is orange the rest is gray: *k#o?cs#i#s\n")
+	fmt.Printf("Suppose you made the guess 'kocsis', and k is green cs is orange the rest is gray: \"*k#o?cs#i#s\"\n")
 	fmt.Println("")
-	fmt.Printf("Multiple guesses is separeted with space on the command line: szozat *k-o?cs-i-s *k#a#r?cs#ú\n")
+	fmt.Printf("Multiple guesses is separeted with space on the command line: szozat \"*k-o?cs-i-s\" \"*k#a#r?cs#ú\"\n")
 	fmt.Println("")
 }
 
