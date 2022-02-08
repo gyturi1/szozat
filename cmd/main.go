@@ -3,68 +3,77 @@ package main
 import (
 	"flag"
 	"fmt"
+	"io"
+	"net/http"
 	"os"
 	"sort"
-	"strings"
 
-	"github.com/gyturi1/szozat/pkg/lib"
+	"github.com/gyturi1/szozat/pkg/generator"
 	"github.com/gyturi1/szozat/pkg/wordmap"
 )
 
-//go run cmd/main.go -g "_ _ cs *ö k"  -l "h f ü ny ly t"
 func main() {
-	initialWord, fixedWordPattern, letters := parseArgs()
-	ws := lib.Gen(initialWord, fixedWordPattern, letters)
-	ws = wordmap.Filter(ws)
-	printResult(ws)
+	all, guessStrings := parseArgs()
+	gs := parseGuesses(guessStrings...)
+	i := generator.Input{
+		Guesses:   gs,
+		ValidWord: validWords(),
+	}
+	ws, err := generator.Generate(i)
+	if err != nil {
+		panic(err)
+	}
+	printResult(ws, all)
 }
 
-func parseArgs() (lib.Word, lib.Word, []lib.Letter) {
-	guess := flag.String("g", "_ _ _ _ _", `the last guess example: " _ ö *cs _ k": _ denotes missing letter; * means letter in the rigth position; other are included but not the rigth position`)
-	availableLetters := flag.String("l", "", "space separated list of letters available, the letter from the guess is appended here")
-	ver := flag.Bool("v", false, "prints the version info")
-	ex := flag.Bool("e", false, "examples")
+func parseGuesses(ss ...string) []generator.Guess {
+	var ret []generator.Guess
+	for _, s := range ss {
+		g, err := generator.Parse(s)
+		if err != nil {
+			panic(err)
+		}
+		ret = append(ret, g)
+	}
+	return ret
+}
+
+func parseArgs() (bool, []string) {
+	v := flag.Bool("v", false, "prints the version info")
+	e := flag.Bool("e", false, "examples")
+	a := flag.Bool("a", false, "print all results")
 
 	flag.Parse()
-	if *ver {
+	if *v {
 		printVersion()
 		os.Exit(0)
 	}
-	if *ex {
+	if *e {
 		printExamples()
 		os.Exit(0)
 	}
 
-	return parseFlags(*guess, *availableLetters)
+	return *a, flag.Args()
 
 }
 
-func parseFlags(guess, availableLetters string) (lib.Word, lib.Word, []lib.Letter) {
-	initialWord, fixedWordPattern, err := lib.ParseGuess(strings.Split(guess, " "))
-	if err != nil {
-		panic(fmt.Errorf("flag -g: %w", err))
+const maxresult = 20
 
+func printResult(ws []string, all bool) {
+	sort.Strings(ws)
+
+	c := len(ws)
+	if !all && len(ws) > maxresult {
+		c = maxresult
+	}
+	for _, w := range ws[:c] {
+		fmt.Println(w)
 	}
 
-	letters, err := lib.ParseRemainingLetters(strings.Split(availableLetters, " "))
-	if err != nil {
-		panic(fmt.Errorf("flag -l: %w", err))
+	fmt.Printf("(%d/%d)\n", c, len(ws))
+	if len(ws) > c {
+		fmt.Println("Use -a flag to see all results")
 	}
-	return initialWord, fixedWordPattern, letters
-}
-
-func printResult(ws []lib.Word) {
-	var converted []string
-	for _, w := range ws {
-		converted = append(converted, w.String())
-	}
-	sort.Strings(converted)
-
-	for _, v := range converted {
-		fmt.Println(v)
-	}
-
-	fmt.Println(len(ws))
 }
 
 var commit, version, date string
@@ -73,8 +82,53 @@ func printVersion() {
 	fmt.Printf("Current build version: %s, commit:%s, date: %s \n", version, commit, date)
 }
 
+var markersInfo map[string]string = map[string]string{
+	string(generator.Gray):   "The letter is Gray",
+	string(generator.Orange): "The letter is Orange",
+	string(generator.Green):  "The letter is Green",
+}
+
 func printExamples() {
-	fmt.Println(`You have the first 3 letter all in rigth position and 10 remaining letter: -g "*k *o *cs _ _" -l " i s t ny dzs gy w q x ú" `)
-	fmt.Println(`You have the first 3 letter none of them in rigth position and 14 remaining letter: -g "p a j _ _" -l " i s t ny dzs gy w q v ú cs ű í x" `)
-	fmt.Println(`Only the letters from guess and provided after the -f flag are used to construct the new possible words`)
+	fmt.Println("")
+	fmt.Printf("szozat [options] [guess...]\n")
+	fmt.Println("")
+	fmt.Printf("Guesses are separated with space. A guess is encoded, see examples below.")
+	fmt.Println("")
+	fmt.Printf("I a guess prefix each letter with one of the markers, meaning of the markers:\n")
+	fmt.Printf("\t %v\n", markersInfo)
+	fmt.Println("")
+	fmt.Printf("Suppose you made the guess 'kocsis', and k is green cs is orange the rest is gray: *k#o?cs#i#s\n")
+	fmt.Println("")
+	fmt.Printf("Multiple guesses is separeted with space on the command line: szozat *k-o?cs-i-s *k#a#r?cs#ú\n")
+	fmt.Println("")
+}
+
+func validWords() generator.ValidWord {
+	m, err := wordmap.Read(downloadWordMap())
+
+	if err == nil && len(m) > 0 {
+		return func(s string) bool {
+			_, ok := m[s]
+			return ok
+		}
+	}
+	return wordmap.Contains
+}
+
+//this will download the wordlist from github/mdanka/szozat/main/src/constants/hungarian-word-letter-list.json
+func downloadWordMap() []byte {
+	resp, err := http.Get("https://raw.githubusercontent.com/mdanka/szozat/main/src/constants/hungarian-word-letter-list.json")
+	if err != nil {
+		fmt.Println("Tried downloading fresh word list, but failed, using what i have")
+		return nil
+	}
+
+	defer resp.Body.Close()
+
+	b, err := io.ReadAll(resp.Body)
+	if err != nil {
+		fmt.Println("Tried reading fresh word list, but failed, using what i have")
+		return nil
+	}
+	return b
 }
