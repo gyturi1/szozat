@@ -9,21 +9,25 @@ import (
 
 type marker string
 
-const Green marker = "*"
-const Orange marker = "?"
-const Gray marker = "#"
+const (
+	Green  marker = "*"
+	Orange marker = "?"
+	Gray   marker = "#"
+)
 
-var ValidMarkers []string = []string{string(Gray), string(Orange), string(Green)}
+var ValidMarkers = []string{string(Gray), string(Orange), string(Green)}
 
 type Guess struct {
 	Word    word
 	Markers [WordLength]marker
 }
 
-var parser string = fmt.Sprintf(`([\\%s\\%s\\%s]{0,1}\p{Latin}{0,3})`, string(Green), string(Orange), string(Gray))
-var re = regexp.MustCompile(parser)
+var (
+	parser = fmt.Sprintf(`([\\%s\\%s\\%s]{0,1}\p{Latin}{0,3})`, string(Green), string(Orange), string(Gray))
+	re     = regexp.MustCompile(parser)
+)
 
-//Parse a guess which must be WordLength letter long, and all letter prefixed with a marker.
+// Parse a guess which must be WordLength letter long, and all letter prefixed with a marker.
 func Parse(s string) (Guess, error) {
 	submatches := re.FindAllStringSubmatch(s, WordLength)
 
@@ -41,7 +45,7 @@ func Parse(s string) (Guess, error) {
 		ls = append(ls, l)
 		ms = append(ms, m)
 	}
-	w := (*word)(ls)
+	w := (*[WordLength]letter)(ls)
 	m := (*[WordLength]marker)(ms)
 	return Guess{Word: *w, Markers: *m}, nil
 }
@@ -66,7 +70,7 @@ func parseSubMatch(m string) (marker, letter, error) {
 	return retM, retL, nil
 }
 
-//parseMarker parses a marker string
+// parseMarker parses a marker string.
 func parseMarker(s string) (marker, error) {
 	rs := []rune(s)
 	if len(rs) == 0 {
@@ -88,7 +92,7 @@ func parseMarker(s string) (marker, error) {
 	}
 }
 
-//template is a special word containing empty letters
+// template is a special word containing empty letters.
 type template struct {
 	word
 }
@@ -109,7 +113,7 @@ func hasEmptySlot(t template) bool {
 	return false
 }
 
-//mkTemplate keep green letters and turns the rest into Empty marker
+// mkTemplate keep green letters and turns the rest into Empty marker.
 func mkTemplate(gs []Guess) template {
 	var ret template
 	for _, g := range gs {
@@ -127,7 +131,7 @@ func mkTemplate(gs []Guess) template {
 	return ret
 }
 
-//matchingGreens returns true if all green letters match in the word
+// matchingGreens returns true if all green letters match in the word.
 func (g Guess) matchingGreens(w word) bool {
 	for i := 0; i < WordLength; i++ {
 		if g.Markers[i] == Green && g.Word[i] != w[i] {
@@ -137,7 +141,7 @@ func (g Guess) matchingGreens(w word) bool {
 	return true
 }
 
-//overlapOrange return true if there is any matching orange letter in the word
+// overlapOrange return true if there is any matching orange letter in the word.
 func (g Guess) overlapOrange(w word) bool {
 	for i := 0; i < WordLength; i++ {
 		if g.Markers[i] == Orange && g.Word[i] == w[i] {
@@ -147,9 +151,9 @@ func (g Guess) overlapOrange(w word) bool {
 	return false
 }
 
-//grays returns all gray marked letters from the guess
+// grays returns all gray marked letters from the guess.
 func (g Guess) grays() letterSet {
-	var ret letterSet = make(letterSet, 0)
+	ret := make(letterSet)
 	for i := 0; i < len(g.Markers); i++ {
 		if g.Markers[i] == Gray {
 			ret[g.Word[i]] = empty

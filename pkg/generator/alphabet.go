@@ -1,14 +1,16 @@
 package generator
 
-type Alphabet map[string]struct{}
-type letterSet map[letter]struct{}
+type (
+	Alphabet  map[string]struct{}
+	letterSet map[letter]struct{}
+)
 
 const emptyLetter letter = "_"
 
-//use for item in letter set
+// use for item in letter set.
 var empty struct{}
 
-var hun_alphabet Alphabet = Alphabet{
+var hunAlphabet = Alphabet{
 	"a":   {},
 	"á":   {},
 	"b":   {},
@@ -56,7 +58,7 @@ var hun_alphabet Alphabet = Alphabet{
 }
 
 func mkLetterSet(s ...string) letterSet {
-	var ret letterSet = make(letterSet)
+	ret := make(letterSet)
 	for _, i := range s {
 		ret[letter(i)] = empty
 	}
@@ -71,10 +73,10 @@ func (a Alphabet) asSet() letterSet {
 	return ls
 }
 
-//addAll creates a copy of the original letterSet and adds all the element provided as argument to this method.
-//Both the original and the passed in sets are left intact.
+// addAll creates a copy of the original letterSet and adds all the element provided as argument to this method.
+// Both the original and the passed in sets are left intact.
 func (ls letterSet) addAll(s letterSet) letterSet {
-	var ret letterSet = make(letterSet)
+	ret := make(letterSet)
 	for l := range ls {
 		ret[l] = empty
 	}
@@ -84,12 +86,12 @@ func (ls letterSet) addAll(s letterSet) letterSet {
 	return ret
 }
 
-//removeAll copies from the original set what is not present in the provided set.
-//Both the original and the passed in sets are left intact.
-func (ls1 letterSet) removeAll(ls2 letterSet) letterSet {
-	var ret letterSet = make(letterSet)
-	for l1 := range ls1 {
-		if _, cont := ls2[l1]; !cont {
+// removeAll copies from the original set what is not present in the provided set.
+// Both the original and the passed in sets are left intact.
+func (ls letterSet) removeAll(items letterSet) letterSet {
+	ret := make(letterSet)
+	for l1 := range ls {
+		if _, cont := items[l1]; !cont {
 			ret[l1] = empty
 		}
 	}

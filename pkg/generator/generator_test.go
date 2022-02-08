@@ -117,16 +117,18 @@ func Test_filterByPreviousGuesses(t *testing.T) {
 	}
 }
 
-var constTrue ValidWord = func(s string) bool { return true }
-var constFalse ValidWord = func(s string) bool { return false }
-var validWords ValidWord = func(s string) bool {
-	var m map[string]struct{} = map[string]struct{}{
-		"kutyus": empty,
-		"abált":  empty,
+var (
+	constTrue  ValidWord = func(s string) bool { return true }
+	constFalse ValidWord = func(s string) bool { return false }
+	validWords ValidWord = func(s string) bool {
+		var m map[string]struct{} = map[string]struct{}{
+			"kutyus": empty,
+			"abált":  empty,
+		}
+		_, ok := m[s]
+		return ok
 	}
-	_, ok := m[s]
-	return ok
-}
+)
 
 func Test_filterByValidWords(t *testing.T) {
 	type args struct {

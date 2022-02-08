@@ -14,7 +14,7 @@ func Generate(i Input) ([]string, error) {
 	t := mkTemplate(i.Guesses)
 	grays := grays(i.Guesses)
 
-	r := hun_alphabet.asSet().removeAll(grays)
+	r := hunAlphabet.asSet().removeAll(grays)
 	all := generateAll([]template{t}, r.asSlice())
 	for _, a := range all {
 		w, err := a.toWord()
@@ -34,7 +34,7 @@ func Generate(i Input) ([]string, error) {
 	return ret, nil
 }
 
-//generateAll generates all the possible words recursively adding all letters to the empty slots in template.
+// generateAll generates all the possible words recursively adding all letters to the empty slots in template.
 func generateAll(startingPoint []template, availableLetters []letter) []template {
 	if len(startingPoint) == 0 || len(availableLetters) == 0 {
 		return startingPoint
@@ -89,7 +89,7 @@ func filterByPreviousGuesses(ws []word, pgs []Guess) []word {
 	}
 	var ret []word = make([]word, 0)
 	for _, w := range ws {
-		var satisfies = true
+		satisfies := true
 		for _, p := range pgs {
 			satisfies = satisfies && (p.matchingGreens(w) && !p.overlapOrange(w))
 			if !satisfies {

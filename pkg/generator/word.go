@@ -6,8 +6,10 @@ import (
 
 const WordLength = 5
 
-type letter string
-type word [WordLength]letter
+type (
+	letter string
+	word   [WordLength]letter
+)
 
 func (w word) String() string {
 	var ret string
@@ -18,7 +20,7 @@ func (w word) String() string {
 }
 
 func mkLetter(s string) (letter, error) {
-	if _, ok := hun_alphabet[s]; !ok {
+	if _, ok := hunAlphabet[s]; !ok {
 		return "", fmt.Errorf("invalid letter: %s", s)
 	}
 	return letter(s), nil

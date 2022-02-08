@@ -10,8 +10,10 @@ import (
 //go:embed words.json
 var f embed.FS
 
-var m map[string]struct{}
-var empty struct{}
+var (
+	m     map[string]struct{}
+	empty struct{}
+)
 
 func Contains(w string) bool {
 	_, ok := m[w]
@@ -35,7 +37,7 @@ func init() {
 }
 
 func Read(c []byte) (map[string]struct{}, error) {
-	var ret map[string]struct{} = make(map[string]struct{})
+	ret := make(map[string]struct{})
 	var words [][]string
 
 	err := json.Unmarshal(c, &words)

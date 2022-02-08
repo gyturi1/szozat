@@ -54,7 +54,6 @@ func parseArgs() (bool, []string) {
 	}
 
 	return *a, flag.Args()
-
 }
 
 const maxresult = 20
@@ -82,7 +81,7 @@ func printVersion() {
 	fmt.Printf("Current build version: %s, commit:%s, date: %s \n", version, commit, date)
 }
 
-var markersInfo map[string]string = map[string]string{
+var markersInfo = map[string]string{
 	string(generator.Gray):   "The letter is Gray",
 	string(generator.Orange): "The letter is Orange",
 	string(generator.Green):  "The letter is Green",
@@ -115,7 +114,7 @@ func validWords() generator.ValidWord {
 	return wordmap.Contains
 }
 
-//this will download the wordlist from github/mdanka/szozat/main/src/constants/hungarian-word-letter-list.json
+// this will download the wordlist from github/mdanka/szozat/main/src/constants/hungarian-word-letter-list.json.
 func downloadWordMap() []byte {
 	resp, err := http.Get("https://raw.githubusercontent.com/mdanka/szozat/main/src/constants/hungarian-word-letter-list.json")
 	if err != nil {
