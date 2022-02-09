@@ -16,8 +16,11 @@ check:
 	@[ $$(git log --branches --not --remotes | wc -l) -eq 0 ] || (echo "$(_red)Unpushed commits$(_nc)" && git log --branches --not --remotes && exit 1)
 	@$(MAKE) snapshot
 	
-PHONY: release
-release: check
-	@git tag -a $(VERSION) -m "Release $(VERSION)"
-	@git push origin $(VERSION)
+PHONY: tag
+tag: check
+	git tag -a $(VERSION) -m "Release $(VERSION)"
+	git push origin $(VERSION)
+	
+.PHONY: release
+release: tag
 	@goreleaser release --rm-dist
