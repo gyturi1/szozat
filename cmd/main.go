@@ -8,54 +8,80 @@ import (
 	"strings"
 
 	"github.com/gyturi1/szozat/pkg/filter"
+	"github.com/rs/zerolog"
+	"github.com/rs/zerolog/log"
 )
 
 type params struct {
-	all      bool
-	download bool
+	isAll      bool
+	isDownlaod bool
 }
 
 func main() {
 	params, guessStrings := parseArgs()
-	p := parsePatters(guessStrings...)
-	wl, etag, err := filter.Embedded()
+	p := parseGuesses(guessStrings)
+	wl := wordList(params.isDownlaod)
+	printResult(p.Filter(wl), params.isAll)
+}
+
+// returns the wrodlist from: embedded, cache, or download it if requested.
+func wordList(download bool) [][]string {
+	log.Info().Msg("Getting wordlist")
+	wl, et, err := filter.Embedded()
 	if err != nil {
 		panic(err)
 	}
+	log.Debug().Msg("Loaded from embedded")
 
 	cachedWordList, e2 := filter.LatestCached()
 	if len(cachedWordList) > 0 {
 		wl = cachedWordList
-		etag = e2
+		et = e2
+		log.Debug().Str("etag", et).Msg("Loaded from cache")
 	}
 
-	if params.download {
-		d, err := filter.Download(etag)
+	if download {
+		d, err := filter.Download(et)
 		if err != nil {
 			panic(err)
 		}
 		if len(d) > 0 {
 			wl = d
 		}
+		log.Debug().Msg("Downloaded")
 	}
-	printResult(p.Filter(wl), params.all)
+	log.Debug().Int("wl.length", len(wl)).Msg("")
+	return wl
 }
 
-func parsePatters(ss ...string) filter.Pattern {
-	p, err := filter.ParseAll(ss)
+// Parse the guesses given as command line argument
+func parseGuesses(s []string) filter.Markers {
+	log.Info().Msg("Parsing guesses")
+	p, err := filter.ParseAll(s)
 	if err != nil {
 		panic(err)
 	}
 	return p
 }
 
+// parse the command line arguments, an returns the flags as params, and the guesses as a string slice.
 func parseArgs() (params, []string) {
 	v := flag.Bool("v", false, "prints the version info")
 	e := flag.Bool("e", false, "examples")
 	a := flag.Bool("a", false, "print all results")
 	d := flag.Bool("d", false, "download word list if new available")
-
+	l := flag.Int("l", 7, "log level can be: https://pkg.go.dev/github.com/rs/zerolog#DebugLevel")
 	flag.Parse()
+
+	level := zerolog.Level(*l)
+	zerolog.SetGlobalLevel(level)
+
+	ret := params{isAll: *a, isDownlaod: *d}
+	args := flag.Args()
+
+	log.Debug().Str("flags", fmt.Sprintf("%v", ret)).Msg("ParseArgs")
+	log.Debug().Str("guesses", fmt.Sprintf("%v", args)).Msg("ParseArgs")
+
 	if *v {
 		printVersion()
 		os.Exit(0)
@@ -65,12 +91,13 @@ func parseArgs() (params, []string) {
 		os.Exit(0)
 	}
 
-	return params{all: *a, download: *d}, flag.Args()
+	return ret, args
 }
 
 const maxresult = 20
 
 func printResult(wl filter.Wordlist, all bool) {
+	log.Info().Msg("Printing results")
 	var ws []string
 	for _, w := range wl {
 		ws = append(ws, strings.Join(w, ""))

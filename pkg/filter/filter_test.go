@@ -20,7 +20,7 @@ func TestPattern_Filter(t *testing.T) {
 	}
 	tests := []struct {
 		name string
-		p    Pattern
+		p    Markers
 		args args
 		want Wordlist
 	}{
@@ -38,13 +38,13 @@ func TestPattern_Filter(t *testing.T) {
 		},
 		{
 			name: "Pattern no filter",
-			p:    Pattern{Mark{Letter: "cs", Position: 0, Marker: Gray}},
+			p:    Markers{Marker{Letter: "cs", Position: 0, M: Gray}},
 			args: args{wl: wl},
 			want: wl,
 		},
 		{
 			name: "Pattern filter orange",
-			p:    Pattern{Mark{Letter: "a", Position: 0, Marker: Orange}},
+			p:    Markers{Marker{Letter: "a", Position: 0, M: Orange}},
 			args: args{wl: wl},
 			want: [][]string{
 				{"b", "a", "n", "dzs", "a"},
@@ -54,7 +54,7 @@ func TestPattern_Filter(t *testing.T) {
 		},
 		{
 			name: "Pattern filter green",
-			p:    Pattern{Mark{Letter: "n", Position: 2, Marker: Green}},
+			p:    Markers{Marker{Letter: "n", Position: 2, M: Green}},
 			args: args{wl: wl},
 			want: [][]string{
 				{"b", "a", "n", "dzs", "a"},
@@ -62,9 +62,9 @@ func TestPattern_Filter(t *testing.T) {
 		},
 		{
 			name: "Pattern filter green, orange",
-			p: Pattern{
-				Mark{Letter: "r", Position: 2, Marker: Green},
-				Mark{Letter: "a", Position: 0, Marker: Orange},
+			p: Markers{
+				Marker{Letter: "r", Position: 2, M: Green},
+				Marker{Letter: "a", Position: 0, M: Orange},
 			},
 			args: args{wl: wl},
 			want: [][]string{
@@ -74,10 +74,10 @@ func TestPattern_Filter(t *testing.T) {
 		},
 		{
 			name: "Pattern filter green, orange, gray I",
-			p: Pattern{
-				Mark{Letter: "r", Position: 2, Marker: Green},
-				Mark{Letter: "a", Position: 0, Marker: Orange},
-				Mark{Letter: "b", Position: 0, Marker: Gray},
+			p: Markers{
+				Marker{Letter: "r", Position: 2, M: Green},
+				Marker{Letter: "a", Position: 0, M: Orange},
+				Marker{Letter: "b", Position: 0, M: Gray},
 			},
 			args: args{wl: wl},
 			want: [][]string{
@@ -87,10 +87,10 @@ func TestPattern_Filter(t *testing.T) {
 		},
 		{
 			name: "Pattern filter green, orange, gray II",
-			p: Pattern{
-				Mark{Letter: "r", Position: 2, Marker: Green},
-				Mark{Letter: "a", Position: 0, Marker: Orange},
-				Mark{Letter: "p", Position: 0, Marker: Gray},
+			p: Markers{
+				Marker{Letter: "r", Position: 2, M: Green},
+				Marker{Letter: "a", Position: 0, M: Orange},
+				Marker{Letter: "p", Position: 0, M: Gray},
 			},
 			args: args{wl: wl},
 			want: [][]string{

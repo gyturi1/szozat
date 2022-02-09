@@ -21,7 +21,7 @@ func TestIsCacheFile(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := IsCacheFile(tt.n); got != tt.want {
+			if got := isCacheFile(tt.n); got != tt.want {
 				t.Errorf("IsCacheFile() = %v, want %v", got, tt.want)
 			}
 		})
@@ -40,7 +40,7 @@ func TestEtagFromFileName(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := EtagFromFileName(tt.fn); got != tt.want {
+			if got := etagFromFileName(tt.fn); got != tt.want {
 				t.Errorf("EtagFromFileName() = %v, want %v", got, tt.want)
 			}
 		})
@@ -67,7 +67,7 @@ func Test_write_amd_readCache(t *testing.T) {
 	}
 }
 
-func Test_newestCachedFileContent(t *testing.T) {
+func Test_latestCachedFileContent(t *testing.T) {
 	etag1 := "111"
 	etag2 := "222"
 	c1 := []byte("rtrtrwwrtrwtrtr")
@@ -88,7 +88,7 @@ func Test_newestCachedFileContent(t *testing.T) {
 		t.Error(err)
 	}
 
-	got, _, err := newestCachedFileContent()
+	got, _, err := latestCachedFileContent()
 	if err != nil {
 		t.Error(err)
 	}

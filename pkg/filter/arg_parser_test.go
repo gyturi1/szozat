@@ -13,7 +13,7 @@ func Test_parseMarker(t *testing.T) {
 	tests := []struct {
 		name    string
 		args    args
-		want    Marker
+		want    M
 		wantErr bool
 	}{
 		{
@@ -74,7 +74,7 @@ func Test_parseSubMatch(t *testing.T) {
 	tests := []struct {
 		name    string
 		args    args
-		want    Marker
+		want    M
 		want1   Letter
 		wantErr bool
 	}{
@@ -145,7 +145,7 @@ func TestParse(t *testing.T) {
 	tests := []struct {
 		name    string
 		args    args
-		want    []Mark
+		want    []Marker
 		wantErr bool
 	}{
 		{
@@ -175,36 +175,36 @@ func TestParse(t *testing.T) {
 		{
 			name: "Valid I",
 			args: args{s: "-l-á:n:dzs+a"},
-			want: []Mark{
-				{Letter: "l", Position: 0, Marker: Gray},
-				{Letter: "á", Position: 1, Marker: Gray},
-				{Letter: "n", Position: 2, Marker: Green},
-				{Letter: "dzs", Position: 3, Marker: Green},
-				{Letter: "a", Position: 4, Marker: Orange},
+			want: []Marker{
+				{Letter: "l", Position: 0, M: Gray},
+				{Letter: "á", Position: 1, M: Gray},
+				{Letter: "n", Position: 2, M: Green},
+				{Letter: "dzs", Position: 3, M: Green},
+				{Letter: "a", Position: 4, M: Orange},
 			},
 			wantErr: false,
 		},
 		{
 			name: "Valid II",
 			args: args{s: "+ny+gy+ö+dzs+a"},
-			want: []Mark{
-				{Letter: "ny", Position: 0, Marker: Orange},
-				{Letter: "gy", Position: 1, Marker: Orange},
-				{Letter: "ö", Position: 2, Marker: Orange},
-				{Letter: "dzs", Position: 3, Marker: Orange},
-				{Letter: "a", Position: 4, Marker: Orange},
+			want: []Marker{
+				{Letter: "ny", Position: 0, M: Orange},
+				{Letter: "gy", Position: 1, M: Orange},
+				{Letter: "ö", Position: 2, M: Orange},
+				{Letter: "dzs", Position: 3, M: Orange},
+				{Letter: "a", Position: 4, M: Orange},
 			},
 			wantErr: false,
 		},
 		{
 			name: "Valid III",
 			args: args{s: "-ny+gy:ö+dzs-a"},
-			want: []Mark{
-				{Letter: "ny", Position: 0, Marker: Gray},
-				{Letter: "gy", Position: 1, Marker: Orange},
-				{Letter: "ö", Position: 2, Marker: Green},
-				{Letter: "dzs", Position: 3, Marker: Orange},
-				{Letter: "a", Position: 4, Marker: Gray},
+			want: []Marker{
+				{Letter: "ny", Position: 0, M: Gray},
+				{Letter: "gy", Position: 1, M: Orange},
+				{Letter: "ö", Position: 2, M: Green},
+				{Letter: "dzs", Position: 3, M: Orange},
+				{Letter: "a", Position: 4, M: Gray},
 			},
 			wantErr: false,
 		},
