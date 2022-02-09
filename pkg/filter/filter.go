@@ -1,6 +1,6 @@
 package filter
 
-// simple aliases
+// simple aliases.
 type (
 	Letter   = string
 	Word     = []Letter
@@ -8,10 +8,10 @@ type (
 	Alphabet = []Letter
 )
 
-// a predicate that tell  if a word matches
+// A predicate that tell  if a word matches.
 type predicate = func(Word) bool
 
-// all the predicate is in and relation
+// All the predicate is in and relation.
 type predicates []predicate
 
 func (p Pattern) Filter(wl Wordlist) Wordlist {

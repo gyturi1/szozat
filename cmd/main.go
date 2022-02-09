@@ -22,6 +22,12 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
+
+	cachedWordList := filter.LatestCached()
+	if len(cachedWordList) > 0 {
+		wl = cachedWordList
+	}
+
 	if params.download {
 		d, err := filter.Download()
 		if err != nil {

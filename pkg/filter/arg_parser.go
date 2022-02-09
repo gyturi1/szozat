@@ -19,14 +19,14 @@ const (
 
 var ValidMarkers = []string{string(Gray), string(Orange), string(Green)}
 
-// represent a Mark marked letter
+// represent a Mark marked letter.
 type Mark struct {
 	Letter   Letter
 	Position int
 	Marker
 }
 
-// Pattern to search for
+// Pattern to search for.
 type Pattern []Mark
 
 var (

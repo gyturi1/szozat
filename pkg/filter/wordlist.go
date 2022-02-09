@@ -1,13 +1,29 @@
 package filter
 
 import (
+	"context"
 	"embed"
 	"encoding/json"
+	"fmt"
 	"io"
+	"io/ioutil"
 	"net/http"
+	"os"
+	"path"
+	"strings"
+	"time"
 )
 
-const etag = "e84c73fec7a54cb65a2868ce93c55bd2f3d0652fad2ae8e3d2b48ef526556208"
+const wordListURL = "https://raw.githubusercontent.com/mdanka/szozat/main/src/constants/hungarian-word-letter-list.json"
+
+const (
+	cacheFilePrefix     = "szozat_"
+	cacheFileSuffix     = ".cache"
+	cacheFileNameFormat = cacheFilePrefix + "%s" + cacheFileSuffix
+)
+
+// this is the etag of the embedded words.json NEEDS to be update if new version is embedded!
+var etag = "e84c73fec7a54cb65a2868ce93c55bd2f3d0652fad2ae8e3d2b48ef526556208"
 
 //go:embed words.json
 var f embed.FS
@@ -18,7 +34,7 @@ func Embedded() (Wordlist, error) {
 		return nil, err
 	}
 
-	ret, err := read(c)
+	ret, err := unmarshal(c)
 	if err != nil {
 		return nil, err
 	}
@@ -27,9 +43,11 @@ func Embedded() (Wordlist, error) {
 
 // this will download the wordlist from github/mdanka/szozat/main/src/constants/hungarian-word-letter-list.json.
 func Download() (Wordlist, error) {
-	url := "https://raw.githubusercontent.com/mdanka/szozat/main/src/constants/hungarian-word-letter-list.json"
+	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+	defer cancel()
+
 	client := &http.Client{}
-	req, err := http.NewRequest("GET", url, nil)
+	req, err := http.NewRequestWithContext(ctx, "GET", wordListURL, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -42,8 +60,18 @@ func Download() (Wordlist, error) {
 
 	defer res.Body.Close()
 
+	et := res.Header.Get("etag")
 	if res.StatusCode == 304 {
-		return nil, nil
+		cBytes, err := readCache(et)
+		if err != nil {
+			return nil, err
+		}
+
+		cached, err := unmarshal(cBytes)
+		if err != nil {
+			return nil, err
+		}
+		return cached, nil
 	}
 
 	b, err := io.ReadAll(res.Body)
@@ -51,18 +79,92 @@ func Download() (Wordlist, error) {
 		return nil, err
 	}
 
-	ret, err := read(b)
+	err = writeCache(et, b)
+	if err != nil {
+		return nil, err
+	}
+
+	ret, err := unmarshal(b)
 	if err != nil {
 		return nil, err
 	}
 	return ret, nil
 }
 
-func read(c []byte) (Wordlist, error) {
+func unmarshal(c []byte) (Wordlist, error) {
 	var words Wordlist
 	err := json.Unmarshal(c, &words)
 	if err != nil {
 		return nil, err
 	}
 	return words, nil
+}
+
+func LatestCached() Wordlist {
+	b, err := newestCachedFileContent()
+	if err != nil {
+		return nil
+	}
+	c, err := unmarshal(b)
+	if err != nil {
+		return nil
+	}
+	return c
+}
+
+func newestCachedFileContent() ([]byte, error) {
+	d := os.TempDir()
+	fis, err := ioutil.ReadDir(d)
+	if err != nil {
+		return nil, err
+	}
+
+	var modTime time.Time
+	var fileName string
+
+	for _, fi := range fis {
+		n := fi.Name()
+		if IsCacheFile(n) && fi.ModTime().After(modTime) {
+			fileName = n
+		}
+	}
+
+	e := EtagFromFileName(fileName)
+	etag = e
+	b, err := os.ReadFile(path.Join(d, fileName))
+	if err != nil {
+		return nil, err
+	}
+
+	return b, nil
+}
+
+func IsCacheFile(n string) bool {
+	return strings.HasPrefix(n, cacheFilePrefix) && strings.HasSuffix(n, cacheFileSuffix)
+}
+
+func EtagFromFileName(fn string) string {
+	if !IsCacheFile(fn) {
+		return ""
+	}
+	woPrefix := strings.TrimPrefix(fn, cacheFilePrefix)
+	return strings.TrimSuffix(woPrefix, cacheFileSuffix)
+}
+
+func writeCache(etag string, b []byte) error {
+	return os.WriteFile(cacheFilePath(etag), b, 0o600)
+}
+
+func readCache(etag string) ([]byte, error) {
+	b, err := os.ReadFile(cacheFilePath(etag))
+	if err != nil {
+		return nil, err
+	}
+	return b, nil
+}
+
+func cacheFilePath(etag string) string {
+	d := os.TempDir()
+	fp := path.Join(d, fmt.Sprintf(cacheFileNameFormat, etag))
+	return fp
 }
