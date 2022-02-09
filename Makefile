@@ -13,6 +13,7 @@ check:
 	@golangci-lint run
 	@git diff-index --exit-code HEAD || (echo "$(_red)Uncommited changes$(_nc)" && exit 1)
 	@[ $$(git ls-files -o --exclude-standard | wc -l) -eq 0 ] || (echo "$(_red)Untracked files$(_nc)" && git ls-files -o --exclude-standard && exit 1)
+	@[ $$(git log --branches --not --remotes | wc -l) -eq 0 ] || (echo "$(_red)Unpushed commits$(_nc)" && git log --branches --not --remotes && exit 1)
 	@$(MAKE) snapshot
 	
 PHONY: release
