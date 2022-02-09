@@ -27,7 +27,9 @@ func main() {
 		if err != nil {
 			panic(err)
 		}
-		wl = d
+		if len(d) > 0 {
+			wl = d
+		}
 	}
 	printResult(p.Filter(wl), params.all)
 }
@@ -79,6 +81,11 @@ func printResult(wl filter.Wordlist, all bool) {
 	fmt.Printf("(%d/%d)\n", c, len(ws))
 	if len(ws) > c {
 		fmt.Println("Use -a flag to see all results")
+	}
+
+	if len(ws) == 0 {
+		fmt.Println("No result.")
+		fmt.Println("Maybe old wordlist. Use -d to update the wordlist")
 	}
 }
 
