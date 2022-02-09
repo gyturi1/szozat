@@ -18,18 +18,19 @@ type params struct {
 func main() {
 	params, guessStrings := parseArgs()
 	p := parsePatters(guessStrings...)
-	wl, err := filter.Embedded()
+	wl, etag, err := filter.Embedded()
 	if err != nil {
 		panic(err)
 	}
 
-	cachedWordList := filter.LatestCached()
+	cachedWordList, e2 := filter.LatestCached()
 	if len(cachedWordList) > 0 {
 		wl = cachedWordList
+		etag = e2
 	}
 
 	if params.download {
-		d, err := filter.Download()
+		d, err := filter.Download(etag)
 		if err != nil {
 			panic(err)
 		}

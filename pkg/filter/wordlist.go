@@ -23,26 +23,26 @@ const (
 )
 
 // this is the etag of the embedded words.json NEEDS to be update if new version is embedded!
-var etag = "e84c73fec7a54cb65a2868ce93c55bd2f3d0652fad2ae8e3d2b48ef526556208"
+const etag = "e84c73fec7a54cb65a2868ce93c55bd2f3d0652fad2ae8e3d2b48ef526556208"
 
 //go:embed words.json
 var f embed.FS
 
-func Embedded() (Wordlist, error) {
+func Embedded() (Wordlist, string, error) {
 	c, err := f.ReadFile("words.json")
 	if err != nil {
-		return nil, err
+		return nil, "", err
 	}
 
 	ret, err := unmarshal(c)
 	if err != nil {
-		return nil, err
+		return nil, "", err
 	}
-	return ret, nil
+	return ret, etag, nil
 }
 
 // this will download the wordlist from github/mdanka/szozat/main/src/constants/hungarian-word-letter-list.json.
-func Download() (Wordlist, error) {
+func Download(currentEtag string) (Wordlist, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
 	defer cancel()
 
@@ -51,7 +51,7 @@ func Download() (Wordlist, error) {
 	if err != nil {
 		return nil, err
 	}
-	req.Header.Set("If-None-Match", etag)
+	req.Header.Set("If-None-Match", currentEtag)
 
 	res, err := client.Do(req)
 	if err != nil {
@@ -61,6 +61,11 @@ func Download() (Wordlist, error) {
 	defer res.Body.Close()
 
 	et := res.Header.Get("etag")
+	et = strings.ReplaceAll(et, "W/", "")
+	et = strings.ReplaceAll(et, "\"", "")
+
+	println("StatusCode:" + res.Status)
+
 	if res.StatusCode == 304 {
 		cBytes, err := readCache(et)
 		if err != nil {
@@ -100,43 +105,42 @@ func unmarshal(c []byte) (Wordlist, error) {
 	return words, nil
 }
 
-func LatestCached() Wordlist {
-	b, err := newestCachedFileContent()
+func LatestCached() (Wordlist, string) {
+	b, etag, err := newestCachedFileContent()
 	if err != nil {
-		return nil
+		return nil, ""
 	}
 	c, err := unmarshal(b)
 	if err != nil {
-		return nil
+		return nil, ""
 	}
-	return c
+	return c, etag
 }
 
-func newestCachedFileContent() ([]byte, error) {
+func newestCachedFileContent() ([]byte, string, error) {
 	d := os.TempDir()
 	fis, err := ioutil.ReadDir(d)
 	if err != nil {
-		return nil, err
+		return nil, "", err
 	}
 
-	var modTime time.Time
+	var t time.Time
 	var fileName string
 
 	for _, fi := range fis {
 		n := fi.Name()
-		if IsCacheFile(n) && fi.ModTime().After(modTime) {
+		if IsCacheFile(n) && fi.ModTime().After(t) {
 			fileName = n
+			t = fi.ModTime()
 		}
 	}
 
-	e := EtagFromFileName(fileName)
-	etag = e
 	b, err := os.ReadFile(path.Join(d, fileName))
 	if err != nil {
-		return nil, err
+		return nil, "", err
 	}
 
-	return b, nil
+	return b, EtagFromFileName(fileName), nil
 }
 
 func IsCacheFile(n string) bool {

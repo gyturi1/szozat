@@ -4,6 +4,7 @@ import (
 	"os"
 	"reflect"
 	"testing"
+	"time"
 )
 
 func TestIsCacheFile(t *testing.T) {
@@ -79,12 +80,15 @@ func Test_newestCachedFileContent(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
+
+	// i know i know but just this time :-)
+	time.Sleep(100 * time.Millisecond)
 	err = writeCache(etag2, c2)
 	if err != nil {
 		t.Error(err)
 	}
 
-	got, err := newestCachedFileContent()
+	got, _, err := newestCachedFileContent()
 	if err != nil {
 		t.Error(err)
 	}
