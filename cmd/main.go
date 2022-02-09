@@ -3,65 +3,48 @@ package main
 import (
 	"flag"
 	"fmt"
-	"io"
-	"net/http"
 	"os"
 	"sort"
 	"strings"
 
-	"github.com/gyturi1/szozat/pkg/generator"
-	"github.com/gyturi1/szozat/pkg/wordmap"
+	"github.com/gyturi1/szozat/pkg/filter"
 )
 
 type params struct {
-	all    bool
-	update bool
+	all      bool
+	download bool
 }
 
 func main() {
 	params, guessStrings := parseArgs()
-	if len(guessStrings) == 0 || !hasGreenLetter(guessStrings) {
-		fmt.Println("No guess provided, or guess is too loose")
-		os.Exit(0)
-	}
-	gs := parseGuesses(guessStrings...)
-	i := generator.Input{
-		Guesses:   gs,
-		ValidWord: validWords(),
-	}
-	ws, err := generator.Generate(i)
+	p := parsePatters(guessStrings...)
+	wl, err := filter.Embedded()
 	if err != nil {
 		panic(err)
 	}
-	printResult(ws, params.all)
-}
-
-func hasGreenLetter(gs []string) bool {
-	for _, g := range gs {
-		if strings.Contains(g, string(generator.Green)) {
-			return true
-		}
-	}
-	return false
-}
-
-func parseGuesses(ss ...string) []generator.Guess {
-	var ret []generator.Guess
-	for _, s := range ss {
-		g, err := generator.Parse(s)
+	if params.download {
+		d, err := filter.Download()
 		if err != nil {
 			panic(err)
 		}
-		ret = append(ret, g)
+		wl = d
 	}
-	return ret
+	printResult(p.Filter(wl), params.all)
+}
+
+func parsePatters(ss ...string) filter.Pattern {
+	p, err := filter.ParseAll(ss)
+	if err != nil {
+		panic(err)
+	}
+	return p
 }
 
 func parseArgs() (params, []string) {
 	v := flag.Bool("v", false, "prints the version info")
 	e := flag.Bool("e", false, "examples")
 	a := flag.Bool("a", false, "print all results")
-	u := flag.Bool("u", false, "update word list")
+	d := flag.Bool("d", false, "download word list if new available")
 
 	flag.Parse()
 	if *v {
@@ -73,12 +56,16 @@ func parseArgs() (params, []string) {
 		os.Exit(0)
 	}
 
-	return params{all: *a, update: *u}, flag.Args()
+	return params{all: *a, download: *d}, flag.Args()
 }
 
 const maxresult = 20
 
-func printResult(ws []string, all bool) {
+func printResult(wl filter.Wordlist, all bool) {
+	var ws []string
+	for _, w := range wl {
+		ws = append(ws, strings.Join(w, ""))
+	}
 	sort.Strings(ws)
 
 	c := len(ws)
@@ -102,9 +89,9 @@ func printVersion() {
 }
 
 var markersInfo = map[string]string{
-	string(generator.Gray):   "The letter is Gray",
-	string(generator.Orange): "The letter is Orange",
-	string(generator.Green):  "The letter is Green",
+	string(filter.Gray):   "The letter is Gray",
+	string(filter.Orange): "The letter is Orange",
+	string(filter.Green):  "The letter is Green",
 }
 
 func printExamples() {
@@ -116,38 +103,8 @@ func printExamples() {
 	fmt.Printf("I a guess prefix each letter with one of the markers, meaning of the markers:\n")
 	fmt.Printf("\t %v\n", markersInfo)
 	fmt.Println("")
-	fmt.Printf("Suppose you made the guess 'kocsis', and k is green cs is orange the rest is gray: \"*k#o?cs#i#s\"\n")
+	fmt.Printf("Suppose you made the guess 'kocsis', and k is green cs is orange the rest is gray: \"%sk%so%scs%si%ss\"\n", filter.Green, filter.Gray, filter.Orange, filter.Gray, filter.Gray)
 	fmt.Println("")
-	fmt.Printf("Multiple guesses is separeted with space on the command line: szozat \"*k-o?cs-i-s\" \"*k#a#r?cs#ú\"\n")
+	fmt.Printf("Multiple guesses is separeted with space on the command line: szozat \"guess1\" \"guess2\"\n")
 	fmt.Println("")
-}
-
-func validWords() generator.ValidWord {
-	m, err := wordmap.Read(downloadWordMap())
-
-	if err == nil && len(m) > 0 {
-		return func(s string) bool {
-			_, ok := m[s]
-			return ok
-		}
-	}
-	return wordmap.Contains
-}
-
-// this will download the wordlist from github/mdanka/szozat/main/src/constants/hungarian-word-letter-list.json.
-func downloadWordMap() []byte {
-	resp, err := http.Get("https://raw.githubusercontent.com/mdanka/szozat/main/src/constants/hungarian-word-letter-list.json")
-	if err != nil {
-		fmt.Println("Tried downloading fresh word list, but failed, using what i have")
-		return nil
-	}
-
-	defer resp.Body.Close()
-
-	b, err := io.ReadAll(resp.Body)
-	if err != nil {
-		fmt.Println("Tried reading fresh word list, but failed, using what i have")
-		return nil
-	}
-	return b
 }
