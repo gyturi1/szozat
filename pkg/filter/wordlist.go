@@ -30,7 +30,7 @@ const etag = "e84c73fec7a54cb65a2868ce93c55bd2f3d0652fad2ae8e3d2b48ef526556208"
 //go:embed words.json
 var f embed.FS
 
-// returns the embedded wordlist
+// returns the embedded wordlist.
 func Embedded() (Wordlist, string, error) {
 	log.Info().Str("method", "Emdedded()").Msg("")
 	log.Debug().Str("etag.const.embedded", etag).Msg("")

@@ -54,7 +54,7 @@ func wordList(download bool) [][]string {
 	return wl
 }
 
-// Parse the guesses given as command line argument
+// Parse the guesses given as command line argument.
 func parseGuesses(s []string) filter.Markers {
 	log.Info().Msg("Parsing guesses")
 	p, err := filter.ParseAll(s)
