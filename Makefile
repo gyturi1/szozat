@@ -12,7 +12,7 @@ snapshot:
 check:
 	@golangci-lint run
 	@git diff-index --exit-code HEAD || (echo "$(_red)Uncommited changes$(_nc)" && exit 1)
-	@[ $(git ls-files -o --exclude-standard | wc -l) -eq 0 ] || (echo "$(_red)Untracked files$(_nc)" && git ls-files -o --exclude-standard && exit 1)
+	@[ $$(git ls-files -o --exclude-standard | wc -l) -eq 0 ] || (echo "$(_red)Untracked files$(_nc)" && git ls-files -o --exclude-standard && exit 1)
 	@$(MAKE) snapshot
 	
 PHONY: release
