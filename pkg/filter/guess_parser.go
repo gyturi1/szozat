@@ -10,6 +10,7 @@ import (
 
 const WordLength = 5
 
+// M is the color of the letter.
 type M string
 
 const (
@@ -71,6 +72,30 @@ func Parse(s string) ([]Marker, error) {
 	return ret, nil
 }
 
+// builds the predicate list from the Markers.
+func (p Markers) ToPredicates() Predicates {
+	log.Info().Str("method", "predicates()").Msg("")
+	log.Debug().Str("markers", fmt.Sprintf("%v", p)).Msg("")
+	var ret Predicates
+
+	for _, m := range p {
+		if m.M == Green {
+			log.Debug().Str("mark", fmt.Sprintf("%v", m)).Msg("Adding green predicate")
+			ret = append(ret, greenMatcher(m))
+		}
+		if m.M == Orange {
+			log.Debug().Str("letter", m.Letter).Msg("Adding orange predicate")
+			ret = append(ret, orangeMatcher(m.Letter))
+		}
+		if m.M == Gray {
+			log.Debug().Str("letter", m.Letter).Msg("Adding gray predicate")
+			ret = append(ret, grayMatcher(m.Letter))
+		}
+	}
+
+	return ret
+}
+
 // parse a single letter in the guess into a marker.
 func parseSubMatch(sm string) (M, Letter, error) {
 	if len(sm) < 2 {
@@ -111,4 +136,21 @@ func parseMarker(s string) (M, error) {
 	default:
 		return "", fmt.Errorf("unknown marker: %v valid markers: %v", r, ValidMarkers)
 	}
+}
+
+// builds a predicate if the word has a letter in the given position.
+func greenMatcher(m Marker) predicate {
+	return func(w Word) bool {
+		return w[m.Position] == m.Letter
+	}
+}
+
+// builds a predicate if the word contains the letter.
+func orangeMatcher(l Letter) predicate {
+	return containsLetter(l)
+}
+
+// builds a predicate if the word does not contain the letter.
+func grayMatcher(l Letter) predicate {
+	return not(containsLetter(l))
 }

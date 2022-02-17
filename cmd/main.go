@@ -15,13 +15,30 @@ import (
 type params struct {
 	isAll      bool
 	isDownlaod bool
+	guesses    filter.Markers
+	greens     filter.Markers
+	grays      filter.Markers
+	oranges    filter.Markers
 }
 
 func main() {
-	params, guessStrings := parseArgs()
-	p := parseGuesses(guessStrings)
+	params := parseArgs()
 	wl := wordList(params.isDownlaod)
-	printResult(p.Filter(wl), params.isAll)
+	var p filter.Predicates
+	if len(params.guesses) > 0 {
+		p = append(p, params.guesses.ToPredicates()...)
+	}
+	if len(params.greens) > 0 {
+		p = append(p, params.greens.ToPredicates()...)
+	}
+	if len(params.grays) > 0 {
+		p = append(p, params.grays.ToPredicates()...)
+	}
+	if len(params.oranges) > 0 {
+		p = append(p, params.oranges.ToPredicates()...)
+	}
+
+	printResult(filter.Filter(wl, p), params.isAll)
 }
 
 // returns the wrodlist from: embedded, cache, or download it if requested.
@@ -54,33 +71,20 @@ func wordList(download bool) [][]string {
 	return wl
 }
 
-// Parse the guesses given as command line argument.
-func parseGuesses(s []string) filter.Markers {
-	log.Info().Msg("Parsing guesses")
-	p, err := filter.ParseAll(s)
-	if err != nil {
-		panic(err)
-	}
-	return p
-}
-
 // parse the command line arguments, an returns the flags as params, and the guesses as a string slice.
-func parseArgs() (params, []string) {
+func parseArgs() params {
 	v := flag.Bool("v", false, "prints the version info")
 	e := flag.Bool("e", false, "examples")
 	a := flag.Bool("a", false, "print all results")
 	d := flag.Bool("d", false, "download word list if new available")
 	l := flag.Int("l", 7, "log level can be: https://pkg.go.dev/github.com/rs/zerolog#DebugLevel")
+	green := flag.String("g", "", "the green letters encoded as space separated letter:index")
+	gray := flag.String("b", "", "the gray letters a space separated letter list")
+	orange := flag.String("o", "", "the orange letter space separated letter list")
 	flag.Parse()
 
 	level := zerolog.Level(*l)
 	zerolog.SetGlobalLevel(level)
-
-	ret := params{isAll: *a, isDownlaod: *d}
-	args := flag.Args()
-
-	log.Debug().Str("flags", fmt.Sprintf("%v", ret)).Msg("ParseArgs")
-	log.Debug().Str("guesses", fmt.Sprintf("%v", args)).Msg("ParseArgs")
 
 	if *v {
 		printVersion()
@@ -91,7 +95,27 @@ func parseArgs() (params, []string) {
 		os.Exit(0)
 	}
 
-	return ret, args
+	guesses, err := filter.ParseAll(flag.Args())
+	if err != nil {
+		panic(err)
+	}
+	greens, err := filter.ParseGreenLetters(*green)
+	if err != nil {
+		panic(err)
+	}
+	oranges, err := filter.ParseOrangeLetters(*orange)
+	if err != nil {
+		panic(err)
+	}
+	grays, err := filter.ParseGrayLetters(*gray)
+	if err != nil {
+		panic(err)
+	}
+	ret := params{isAll: *a, isDownlaod: *d, guesses: guesses, greens: greens, grays: grays, oranges: oranges}
+
+	log.Debug().Str("flags", fmt.Sprintf("%v", ret)).Msg("ParseArgs")
+
+	return ret
 }
 
 const maxresult = 20

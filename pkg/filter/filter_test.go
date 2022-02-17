@@ -100,7 +100,7 @@ func TestPattern_Filter(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := tt.p.Filter(tt.args.wl); !reflect.DeepEqual(got, tt.want) {
+			if got := Filter(tt.args.wl, tt.p.ToPredicates()); !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("Pattern.Filter() = %v, want %v", got, tt.want)
 			}
 		})
